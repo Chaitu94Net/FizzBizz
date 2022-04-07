@@ -1,0 +1,127 @@
+﻿@{
+    ViewData["Title"] = "Check Fizz Buzz";
+}
+
+
+<h1>Check Fizz Buzz</h1>
+<br>
+<input type="hidden" id="ajaxUrl" name="ajaxUrl" value="@Url.Action("CheckFizzBizz", "Home")" />
+
+
+<div class="accordion accordion-flush" id="toggleFilter">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="flush-headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                Filters
+            </button>
+        </h2>
+        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#toggleFilter">
+            <div class="accordion-body mb-3 row">
+                <label for="idVal" style="padding-right:0px !important" class="col-sm-2 fw-bold col-form-label">Enter any Value</label>
+                <div class="col-sm-6" style="padding-left:0px !important">
+                    <input type="text" class="form-control" id="idVal">
+                </div>
+                <button type="button" id="btnCheck" class="btn btn-sm btn-info col-sm-1">FizzyBizzy</button>
+                <button type="button" id="btnClear" class="btn btn-sm btn-danger col-sm-1">Clear</button>
+            </div>
+            <div class="row">
+                <label for="pSelectedValue" style="padding-right:0px !important" class="fw-bold col-form-label">Selected Value:</label>
+                <p id="pSelectedValue"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-responsive">
+        <table id="tableResults" class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Input</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts{
+<script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+<script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+<script type="text/javascript">
+    var testArr=[];
+    var table;
+        function SetEvents(ajaxUrl){
+            $('#idVal').on("keypress", function(e){
+                if(e.which == 13){
+                    testArr.push(event.target.value);
+                    document.getElementById("pSelectedValue").innerHTML=testArr.toString();
+                    $("#idVal").val(" ");
+                }
+            });            
+            $("#btnCheck").click(function(){
+                bindTable(ajaxUrl);
+                testArr=[];
+            });
+            $("#btnClear").click(function(){
+                $("#idVal").val(" ");
+                testArr=[];
+                document.getElementById("pSelectedValue").innerHTML="";
+                $('#tableResults').dataTable().fnClearTable();
+            });
+
+            function processQ(){
+                document.getElementById("pSelectedValue").innerHTML=testArr.toString();
+            }
+
+            testArr.push = function() { Array.prototype.push.apply(this, arguments);  processQ();};
+
+        }
+
+
+        function bindTable(ajaxUrl){            
+            if(testArr.length>0){
+                if(table==undefined)
+                {
+              table=  $("#tableResults").dataTable({
+                    "processing":true,
+                    "searching":false,
+                    "ajax":{
+                        "url":ajaxUrl,
+                        "type":"POST",
+                        data: (data) => {
+                            data.category = testArr;
+                            },                            
+                    dataSrc: (data) => {
+                        console.log(data);
+                        return data;
+                    }
+                        },
+                    "columns":[
+                        {"data":"Input"},
+                        {"data":"Result"}
+                    ]
+                });
+                }
+                else{
+                $('#tableResults').dataTable( ).api().ajax.reload();
+                }
+
+            }
+        }
+
+
+        $(function () {
+            var ajaxUrl = $('input[name="ajaxUrl"]').val();
+            SetEvents(ajaxUrl);
+        });
+
+
+</script>
+}
+
+
+
+
+
